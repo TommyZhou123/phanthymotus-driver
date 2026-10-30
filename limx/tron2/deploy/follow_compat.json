@@ -1,0 +1,133 @@
+{
+  "schema": "tron2-vop-field-compat-v1",
+  "version": "0.14.0-vop-local1",
+  "original_version": "0.11.0-grasp-close-local1",
+  "pr_source_commit": "65481a326d0d8c9e11d575ef2dbf130b8d8b7cb0",
+  "image": "bj-warehouse.tencentcloudcr.com/phanthy-motus/drivers/limx/tron2:release.261030.65481a3",
+  "expected_root_sources": {
+    "teaching.py": "78d0b7108ac14054e84eed3d772bd7301b82c9703022337f3b1b9b112a9000a2",
+    "vendor.py": "c15f67c8e0db319508f07077081e98a073ed57f3afec988ea1fb1957d870cd76",
+    "check.py": "3410f5edb58bbe7c53004798abe31b3294a01cf340a1946ae764685c9ae19c4a",
+    "completion.py": "4f62e12c4f01d791f535ab60c15c1e3d216a34a6f8fa32721b76911dfa63bdda",
+    "episode.py": "67059b50a411e2651a604f8a37110a5b837448caa9402d9202880c25ac2e5cd8",
+    "device.py": "6e8bef10ae70011746de5210219c854b9a429e61d71f37180afd6899c161416f",
+    "skeleton.py": "bc214fb0b7d4462540a5c0a3c4d359a7538ae83de3035c1bccad475d09940ae4",
+    "reset.py": "e7086eb03315ba4fc6f4455faef31254c88a98596017aae83b913ba084510a3a",
+    "teaching_sdk.py": "910c92790a3a80431d745f3468c15a764e200b7e33bb6842aaa8896871fddcd8",
+    "trajectory.py": "edfddec6e7b26205785988eedf3c0de877f6516e7c572872c402f8aafdd09c97",
+    "teaching_replay.py": "99f019d4fcbb7871a94076823f5823ac75f029b8f6a24abfd3c18ace257075cd",
+    "gripper.py": "68eb442e3bb2e85e2d036390d4496a3dd53665c2ec69e335cdac9f6b44d9342f",
+    "camera.py": "14e0ae135eb0714a326d37ff2a3f117ec2173cc4fbea7163a902645e696227f1",
+    "pose.py": "1b5924c2b8af5e9d55680e17b5fae4cb1cfd6209ec6d312c717839be31933f71",
+    "head.py": "2db6135764dc6304f2641224cccfe781814c1327ffd696ab90beae9a29bc9f01",
+    "ros2.py": "b1f0b86f3df6ee5a72518d9811ac11e560d6ee726234f3ce05ede09d632dd4ec",
+    "teaching_capture.py": "bff1d2c35517bb89e50021a0ce45850a3d40e3ea37f3084ad2b66595b1128299",
+    "main.py": "8ec1d166617607a8204b4681e7921137b3a5eeda125894809535c8e6c8845c09",
+    "vla_export.py": "0489775183ad1ece6bc2426df51d88a531260cbb49750e847d41c0ababf2a4e8",
+    "state.py": "8a9145a9e96726c34021294231f30168d0f7a74f555ff83c812381f8c429152c"
+  },
+  "edits": {
+    "device.py": [
+      [
+        "VERSION = '0.11.0-grasp-close-local1'",
+        "VERSION = '0.14.0-vop-local1'"
+      ],
+      [
+        "'pose', 'tron2_teaching'}",
+        "'pose', 'tron2_teaching', 'head_visual_follow'}"
+      ],
+      [
+        "'pose', 'tron2_teaching'}",
+        "'pose', 'tron2_teaching', 'head_visual_follow'}"
+      ],
+      [
+        "'pose', 'tron2_teaching'}",
+        "'pose', 'tron2_teaching', 'head_visual_follow'}"
+      ],
+      [
+        "        self.reader = reader or RobotReader(settings)",
+        "        self.follow_runtime = None\n        self.reader = reader or RobotReader(settings)"
+      ],
+      [
+        "        return tools\n",
+        "        if 'head_visual_follow' in self.enabled:\n            from head_follow.engine import tool as follow_tool\n            tools.append(follow_tool())\n        return tools\n"
+      ],
+      [
+        "        allowed = {'action', 'instance_id', '_trace_id'}",
+        "        allowed = {'action', 'instance_id', '_trace_id'}\n        if name == 'head_visual_follow':\n            allowed |= {'input_topic','input_topics'}"
+      ],
+      [
+        "        if name == 'model' and 'joint_state' in self.enabled:",
+        "        if name == 'head_visual_follow':\n            if name not in self.enabled: raise ValueError('Unknown tool')\n            return {'status':'validated','motion_sent':False}\n        if name == 'model' and 'joint_state' in self.enabled:"
+      ],
+      [
+        "    async def rpc(self, request):",
+        "    def follow_peer_check(self):\n        if self.teaching is not None:\n            adapter = self.teaching.adapter\n            if adapter.capture.info().get('recording') is not False or adapter.replay.active or adapter.replay.busy or adapter.replay.recovering:\n                raise ValueError('示教、录制或回放仍在执行；不发送跟随目标')\n\n    def guarded_follow_send(self, token):\n        self.follow_peer_check()\n        self.follow_runtime.before_send(token)\n\n    async def execute_tool(self, name, args, *, follow_guard=None):\n        data = self.call(name,args)\n        if name == 'head_visual_follow':\n            return await self.follow_runtime.call(args)\n        if name != 'move_head' or data.get('action') != 'move' or follow_guard is None:\n            raise ValueError('Internal follow transport only')\n        self.follow_peer_check()\n        details = {key:data[key] for key in ('target_pitch_deg','target_yaw_deg')}\n        details['head_follow_guard'] = follow_guard\n        return await self.head.dispatch('move',data['joint'],data['time'],details)\n\n    async def rpc(self, request):"
+      ],
+      [
+        "                    if params.get('name') == 'tron2_teaching' and self.teaching is not None:",
+        "                    if params.get('name') == 'head_visual_follow':\n                        args=params.get('arguments',{})\n                        self.call('head_visual_follow',args)\n                        self.follow_peer_check() if args.get('action')=='follow' else None\n                        data=await self.follow_runtime.call(args)\n                    elif params.get('name') == 'tron2_teaching' and self.teaching is not None:"
+      ],
+      [
+        "    async def health(self, request):\n        samples = self.snapshot()\n        ready = self.reader.connected and bool(samples) and all(s['available'] for s in samples.values())\n        cameras = {name: stream.info() for name, stream in self.cameras.items() if name in self.enabled}\n        if not samples and cameras:\n            ready = all(info['available'] for info in cameras.values())\n        return web.json_response({'version': VERSION, 'read_only': not set(self.enabled) & ({'arm_control', 'move_head', 'gripper', 'pose'} | set(GRIPPER_SIDES)), 'ready': ready,\n            'arm_motion': self.motion.summary(),\n            'head_motion': self.head.summary(),\n            'pose_motion': self.pose.motion_summary(),\n            'grippers': {name: owner.info() for name, owner in self.grippers.items() if name in self.enabled or 'gripper' in self.enabled},\n            'camera': self.camera.info() if 'camera' in self.enabled else None,\n            'cameras': cameras,\n            'robot_connected': self.reader.connected, 'registered_mcp_id': self.registered_id,\n            'last_connection_error': self.reader.last_error,\n            'round_trip_seconds': self.reader.last_round_trip, 'samples': samples},\n            status=200 if ready else 503)\n\n",
+        "    def health_data(self):\n        samples = self.snapshot()\n        ready = self.reader.connected and bool(samples) and all(s['available'] for s in samples.values())\n        cameras = {name: stream.info() for name, stream in self.cameras.items() if name in self.enabled}\n        if not samples and cameras:\n            ready = all(info['available'] for info in cameras.values())\n        return {'version': VERSION, 'read_only': not set(self.enabled) & ({'arm_control', 'move_head', 'gripper', 'pose'} | set(GRIPPER_SIDES)), 'ready': ready,\n            'arm_motion': self.motion.summary(),\n            'head_motion': self.head.summary(),\n            'pose_motion': self.pose.motion_summary(),\n            'grippers': {name: owner.info() for name, owner in self.grippers.items() if name in self.enabled or 'gripper' in self.enabled},\n            'camera': self.camera.info() if 'camera' in self.enabled else None,\n            'cameras': cameras,\n            'robot_connected': self.reader.connected, 'registered_mcp_id': self.registered_id,\n            'last_connection_error': self.reader.last_error,\n            'round_trip_seconds': self.reader.last_round_trip, 'samples': samples}\n\n    async def health(self, request):\n        data = self.health_data()\n        if self.follow_runtime is not None:\n            data['head_visual_follow'] = await asyncio.to_thread(self.follow_runtime.info)\n        return web.json_response(data,status=200 if data['ready'] else 503)\n\n"
+      ]
+    ],
+    "main.py": [
+      [
+        "    allowed = {'joint_state'",
+        "    if isinstance(plugins, dict) and 'head_visual_follow' not in plugins:\n        plugins = {**plugins,'head_visual_follow':{'enabled':True}}\n    allowed = {'head_visual_follow', 'joint_state'"
+      ],
+      [
+        "    settings['enabled_cards'] = enabled",
+        "    if 'head_visual_follow' in enabled and not {'joint_state','camera','move_head'} <= set(enabled):\n        raise ValueError('Head following requires joint_state, camera and move_head')\n    settings['enabled_cards'] = enabled"
+      ],
+      [
+        "    runner = None\n",
+        "    runner = None\n    adapter = None\n"
+      ],
+      [
+        "            adapter = Adapter(publisher.publish, settings, session=session)",
+        "            adapter = Adapter(publisher.publish, settings, session=session)\n            if 'head_visual_follow' in adapter.enabled:\n                from head_follow.runtime import Runtime\n                adapter.follow_runtime = Runtime(adapter,publisher)\n                adapter.head.follow_guard = adapter.guarded_follow_send\n                adapter.follow_runtime.launch()"
+      ],
+      [
+        "                if adapter.teaching is not None:",
+        "                if adapter.follow_runtime is not None:\n                    await adapter.follow_runtime.close()\n                if adapter.teaching is not None:"
+      ],
+      [
+        "    finally:\n        if runner:",
+        "    finally:\n        if adapter is not None and adapter.follow_runtime is not None:\n            await adapter.follow_runtime.close()\n        if runner:"
+      ]
+    ],
+    "vendor.py": [
+      [
+        "    async def send_moveh(self, q, move_time):",
+        "    async def send_moveh(self, q, move_time, *, guard=None):"
+      ],
+      [
+        "        guid = str(uuid.uuid4()); future = asyncio.get_running_loop().create_future()\n        self.head_pending",
+        "        if guard is not None:\n            guard()  # Recheck follow ownership after the awaited mode query.\n        guid = str(uuid.uuid4()); future = asyncio.get_running_loop().create_future()\n        self.head_pending"
+      ]
+    ]
+  },
+  "patched_root_sources": {
+    "device.py": "94a7875cfcab2b04445d9ea6525deb165161f5f04489168ca983bc054056de98",
+    "main.py": "a6425b07d13da044fcbcffb0b4906a6cddba7ea8195e71ad07e2c04c96805bb7",
+    "vendor.py": "2d05250fce3dd18b20124897ef28a06563906616abc6f186bceae11671a0bd94"
+  },
+  "extract_sha256": {
+    "head.py": "d3461f99865af4f668c4e90872ddeb5882b0a34587188dd925f847edaf30a265",
+    "ros2.py": "6c22f5473dd667ed9939497d846dfffa59370421254833054f88560f41c3520a",
+    "head_follow/__init__.py": "07a0b49ea13c7c7d073e93891bc43858c1bee9ff4a4d68be86ba6940752ad5f9",
+    "head_follow/client.py": "3a3494e29352801d444ffae5f9cc3e1a10946688666b6e857f88cb3f176a58f0",
+    "head_follow/engine.py": "fad487a39a93a542c4ec2b61e349e2229137a8ccf8cf9a4fadfd0f4d7cdefcc1",
+    "head_follow/runtime.py": "0a3822dea040a16c109062705b77b61260b7a1e20fa6891b682331e9c279042c"
+  },
+  "tests_sha256": {
+    "test_sensors.py": "21e61d27798294babbcbba27a6bf4d46e194d4481c831c3149af5f605fbc01c9",
+    "test_head_follow.py": "ea2a05639e0f414fca5fc7ff6fc943454d758181fee280f11b1ddc52c74413b1",
+    "test_follow_runtime.py": "f61feaf0d55f5a212805aae253f045c30667f17006e5e86703f87f6f878bcc21",
+    "test_follow_e2e.py": "8403021a0871b6ca4be7a61969f906ef4855fc5f1715e84d3da259466f8e6f9c"
+  },
+  "common_stop_ast_sha256": "47ebf78c90d6ce23783440ba1e35c67a68c9842a21041c42c24a520d7351c20f"
+}
