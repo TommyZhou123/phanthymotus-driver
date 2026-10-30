@@ -271,6 +271,14 @@ def isolated(image,code=None,tests=None):
         'source /opt/ros/humble/setup.bash && exec python3 '+('-c "$1"' if code else '-m unittest test_head_follow test_follow_runtime.RuntimeTests test_follow_e2e -v 2>&1'),'isolated']
     if code:args.append(code)
     return docker(*args,timeout=120)
+def pin_parent_image(j,ident):
+    tag='local/tron2-vop-base:sha-'+ident.split(':')[-1][:16]
+    ids=docker('image','ls','--no-trunc','--quiet','--filter','reference='+tag).split()
+    require(not ids or set(ids)=={ident},'Local base tag belongs to a different image')
+    if not ids:
+        step(j,'tag_original_base_image',lambda:docker('image','tag',ident,tag))
+    require(json.loads(docker('image','inspect',tag))[0]['Id']==ident,'Base tag did not resolve to the original image')
+    return tag
 def stage(m):
     require(not JOURNAL.exists(),'Deployment journal exists; use --status, do not repeat staging')
     items=inventory();cs=[c for c in items if c['Name']=='/'+NAME]
@@ -310,7 +318,8 @@ def stage(m):
             docker('cp',extraction+':/work/'+n,str(context/n))
         require(sha((context/n).read_bytes())==digest,'PR source mismatch: '+n)
     step(j,'remove_source_container',lambda:docker('rm',extraction))
-    (context/'Dockerfile').write_text('FROM '+c['Image']+'\nCOPY main.py device.py vendor.py head.py ros2.py /work/\nCOPY head_follow/ /work/head_follow/\n')
+    base_tag=pin_parent_image(j,c['Image'])
+    (context/'Dockerfile').write_text('FROM '+base_tag+'\nCOPY main.py device.py vendor.py head.py ros2.py /work/\nCOPY head_follow/ /work/head_follow/\n')
     tag='local/tron2-vop-follow:adfee05-'+c['Image'].split(':')[-1][:12]
     step(j,'build_compatibility_image',lambda:docker('build','--pull=false','--network=none','--quiet','--tag',tag,str(context),timeout=180))
     newmeta=json.loads(docker('image','inspect',tag))[0];image=newmeta['Id'];j['new_image']=image;save(JOURNAL,j)

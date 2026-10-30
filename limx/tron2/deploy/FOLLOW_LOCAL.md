@@ -12,7 +12,7 @@ revalidates the runtime, creates a stopped candidate, then switches only TRON2.
 Original container/image remain for rollback. No robot commands or shared platform
 file edits are implemented. Normal Core re-registration updates tool discovery.
 
-Local validation:50 compatibility integration tests and18 deployment checks passed;
+Local validation:50 compatibility integration tests and20 deployment checks passed;
 actual ARM64 staging/switch requires the operator's machine. The current Perception
 VOP version, actual DDS flow and physical follow/home still need field acceptance.
 Successful deployment remains idle; project start never enables follow.
